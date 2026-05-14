@@ -1,35 +1,96 @@
-from datetime import date, datetime
+import tkinter as tk
+from datetime import date
 
-# Dictionary to store names and birthdays
+# Birthday data
 birthdays = {
-    "Arham": date(2014, 1, 8 ),
-    "Aiza": date(2019, 6, 27),
-    "mom": date(1982, 12, 25),
-    "dad": date(1972, 7, 19),
-    "grandma": date(1940, 3, 15)
+    "Alice": date(2005, 1, 12),
+    "Bob": date(2008, 3, 25),
+    "Charlie": date(2010, 7, 7),
+    "Diana": date(2012, 9, 19),
+    "Ethan": date(2015, 12, 31)
 }
 
-# Function to display all birthdays
-def show_birthdays():
-    print("🎂 Birthday List 🎂")
-    print("-" * 35)
-    for name, bday in birthdays.items():
-        print(f"{name:<10} → {bday.strftime('%d %B %Y')}")
-    print("-" * 35)
+# Calculate age
+def calculate_age(bday):
+    today = date.today()
+    age = today.year - bday.year
+    if (today.month, today.day) < (bday.month, bday.day):
+        age -= 1
+    return age
 
-# Function to find the next upcoming birthday
+# Find next birthday and days remaining
 def next_birthday():
     today = date.today()
     upcoming = None
     for name, bday in birthdays.items():
-        # Replace year with current year for comparison
         this_year_bday = date(today.year, bday.month, bday.day)
         if this_year_bday < today:
             this_year_bday = date(today.year + 1, bday.month, bday.day)
+        days_left = (this_year_bday - today).days
         if upcoming is None or this_year_bday < upcoming[1]:
-            upcoming = (name, this_year_bday)
-    print(f"🎉 Next birthday: {upcoming[0]} on {upcoming[1].strftime('%d %B %Y')}")
+            upcoming = (name, this_year_bday, days_left)
+    return upcoming
 
-# Run the program
-show_birthdays()
-next_birthday()
+# Search function
+def search_birthday():
+    name = entry.get().capitalize()
+    if name in birthdays:
+        bday = birthdays[name]
+        age = calculate_age(bday)
+        today = date.today()
+        this_year_bday = date(today.year, bday.month, bday.day)
+        if this_year_bday < today:
+            this_year_bday = date(today.year + 1, bday.month, bday.day)
+        days_left = (this_year_bday - today).days
+        result_label.config(
+            text=f"{name}: {bday.strftime('%d %B %Y')} (Age: {age}) → {days_left} days left",
+            fg="green", bg="lightyellow"
+        )
+    else:
+        result_label.config(text="Name not found!", fg="red", bg="lightyellow")
+
+# Create GUI window
+root = tk.Tk()
+root.title("🎂 Birthday Reminder 🎂")
+root.geometry("750x550")
+root.configure(bg="lightblue")  # Background color
+
+# Title label
+title = tk.Label(root, text="🎂 Birthday List 🎂", font=("Arial", 24, "bold"), bg="lightblue", fg="darkred")
+title.pack(pady=15)
+
+# Display birthdays in a colorful frame
+frame = tk.Frame(root, bg="white", bd=5, relief="ridge")
+frame.pack(pady=10, padx=20, fill="x")
+
+for name, bday in birthdays.items():
+    age = calculate_age(bday)
+    label = tk.Label(frame, text=f"{name:<10} → {bday.strftime('%d %B %Y')} (Age: {age})",
+                     font=("Arial", 16), bg="white", fg="purple")
+    label.pack(anchor="w", padx=20, pady=3)
+
+# Show next upcoming birthday with days left
+upcoming = next_birthday()
+next_label = tk.Label(
+    root,
+    text=f"🎉 Next Birthday: {upcoming[0]} on {upcoming[1].strftime('%d %B %Y')} → {upcoming[2]} days left",
+    font=("Arial", 18, "bold"),
+    fg="blue", bg="lightgreen"
+)
+next_label.pack(pady=20)
+
+# Search bar
+search_label = tk.Label(root, text="🔍 Search for a name:", font=("Arial", 14), bg="lightblue", fg="black")
+search_label.pack()
+entry = tk.Entry(root, font=("Arial", 14), width=25, bg="lightyellow")
+entry.pack(pady=5)
+search_button = tk.Button(root, text="Search", command=search_birthday, font=("Arial", 14),
+                          bg="orange", fg="black")
+search_button.pack(pady=5)
+
+# Result label
+result_label = tk.Label(root, text="", font=("Arial", 16), bg="lightblue")
+result_label.pack(pady=15)
+
+# Run the GUI
+root.mainloop()
